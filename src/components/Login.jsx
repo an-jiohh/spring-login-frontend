@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: 로그인 로직 구현
-    console.log('로그인 시도:', formData);
+    try {
+      const success = await login(userId, password);
+      if (success) {
+        navigate('/');
+      } else {
+        setMessage('로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      setMessage(error.response?.data || '로그인 중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -34,11 +37,11 @@ function Login() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="이메일 주소"
+              type="text"
+              name="userId"
+              value={userId}
+              onChange={e => setUserId(e.target.value)}
+              placeholder="아이디"
               className="w-full h-14 px-4 rounded-lg border border-[#cccccc] text-base text-[#333333] placeholder-[#808080] focus:outline-none focus:border-[#3366cc] focus:ring-1 focus:ring-[#3366cc]"
             />
           </div>
@@ -47,8 +50,8 @@ function Login() {
             <input
               type="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               placeholder="비밀번호"
               className="w-full h-14 px-4 rounded-lg border border-[#cccccc] text-base text-[#333333] placeholder-[#808080] focus:outline-none focus:border-[#3366cc] focus:ring-1 focus:ring-[#3366cc]"
             />
@@ -61,6 +64,8 @@ function Login() {
             로그인
           </button>
         </form>
+
+        {message && <p className="text-red-500 text-center mt-4">{message}</p>}
 
         <div className="mt-5 flex items-center justify-center">
           <div className="flex-1 h-[1px] bg-[#e6e6e6]"></div>
