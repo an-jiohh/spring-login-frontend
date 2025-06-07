@@ -12,15 +12,19 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    
     try {
       const success = await login(userId, password);
       if (success) {
         navigate('/');
-      } else {
-        setMessage('로그인에 실패했습니다.');
       }
     } catch (error) {
-      setMessage(error.response?.data || '로그인 중 오류가 발생했습니다.');
+      if (error.response?.data?.code === 'INVALID_CREDENTIALS') {
+        setMessage('아이디 또는 비밀번호가 올바르지 않습니다.');
+      } else {
+        setMessage(error.response?.data?.message || '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      }
     }
   };
 
