@@ -9,6 +9,17 @@ import Memo from './components/Memo';
 import NotFound from './components/NotFound';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
+// 홈 페이지 컴포넌트 - 로그인 상태에 따라 다른 컴포넌트 렌더링
+const HomePage = () => {
+    const { isLoggedIn, loading } = useAuth();
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    return isLoggedIn ? <LoggedInHome /> : <Home />;
+};
+
 // 보호된 라우트를 위한 컴포넌트
 const ProtectedRoute = ({ children }) => {
     const { isLoggedIn, loading } = useAuth();
@@ -29,12 +40,11 @@ function App() {
         <AuthProvider>
             <div className="App">
                 <Routes>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
-                    <Route path="/memo" element={<Memo />} />
-                    {/* <Route path="/memo" element={<ProtectedRoute><Memo /></ProtectedRoute>} /> */}
-                    <Route path="/home" element={<ProtectedRoute><LoggedInHome /></ProtectedRoute>} />
+                    {/* <Route path="/memo" element={<Memo />} /> */}
+                    <Route path="/memo" element={<ProtectedRoute><Memo /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </div>

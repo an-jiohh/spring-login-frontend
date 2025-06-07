@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { BASE_URL } from '../config/api';
 
 function Signup() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    userId: '',
     password: '',
     passwordConfirm: '',
     name: ''
   });
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,10 +21,39 @@ function Signup() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: 회원가입 로직 구현
-    console.log('회원가입 시도:', formData);
+    setMessage('');
+
+    // 유효성 검사
+    if (!formData.userId || !formData.password || !formData.name) {
+      setMessage('모든 필수 정보를 입력해주세요.');
+      return;
+    }
+
+    if (formData.password !== formData.passwordConfirm) {
+      setMessage('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${BASE_URL}/signup`, {
+        userId: formData.userId,
+        password: formData.password,
+        name: formData.name
+      });
+
+      if (response.data.status === 'success') {
+        // 회원가입 성공 시 로그인 페이지로 이동
+        navigate('/login');
+      }
+    } catch (error) {
+      if (error.response?.data?.code === 'VALIDATION_ERROR') {
+        setMessage(error.response.data.message);
+      } else {
+        setMessage(error.response?.data?.message || '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      }
+    }
   };
 
   return (
@@ -33,14 +66,20 @@ function Signup() {
           필수 정보를 입력해주세요
         </p>
         
+        {message && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-center">
+            {message}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="userId"
+              value={formData.userId}
               onChange={handleChange}
-              placeholder="이메일 주소"
+              placeholder="아이디"
               className="w-full h-14 px-4 rounded-lg border border-[#cccccc] text-base text-[#333333] placeholder-[#808080] focus:outline-none focus:border-[#3366cc] focus:ring-1 focus:ring-[#3366cc]"
             />
           </div>
@@ -85,24 +124,6 @@ function Signup() {
             가입하기
           </button>
         </form>
-
-        <div className="mt-5 flex items-center justify-center">
-          <div className="flex-1 h-[1px] bg-[#e6e6e6]"></div>
-          <span className="px-4 text-sm text-[#808080]">또는</span>
-          <div className="flex-1 h-[1px] bg-[#e6e6e6]"></div>
-        </div>
-
-        <div className="mt-5 flex justify-center gap-4">
-          <button className="w-12 h-12 rounded-full border border-[#cccccc] flex items-center justify-center hover:bg-gray-50 transition-colors">
-            <span className="text-[#3366cc] font-bold text-xl">G</span>
-          </button>
-          <button className="w-12 h-12 rounded-full bg-[#ffe500] flex items-center justify-center hover:bg-[#ffd700] transition-colors">
-            <span className="text-[#4d3300] font-bold text-xl">K</span>
-          </button>
-          <button className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center hover:bg-black transition-colors">
-            <span className="text-white font-bold text-xl">A</span>
-          </button>
-        </div>
 
         <div className="mt-6 text-center">
           <Link to="/login" className="text-sm text-[#3366cc] hover:underline">
